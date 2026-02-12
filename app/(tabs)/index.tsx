@@ -1,98 +1,174 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useState } from "react";
+import {
+  FlatList,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+interface item {
+  id: number;
+  value: string;
+  isBought: boolean;
+}
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [input, setInput] = useState<string>("");
+  const [itemArray, setItemArray] = useState<item[]>([]);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const addFunc = () => {
+    if (input.trim() === "") return;
+    const newItem = { id: Date.now(), value: input, isBought: false };
+    setItemArray([...itemArray, newItem]);
+    setInput("");
+    Keyboard.dismiss();
+    console.log(itemArray);
+  };
+
+  const removeFunc = (id: number) => {
+    setItemArray(itemArray.filter((key) => key.id != id));
+  };
+
+  const toogle = (id: number) => {
+    const newList = itemArray.map((item) => {
+      if (item.id === id) {
+        return { ...item, isBought: !item.isBought };
+      }
+      return item;
+    });
+    setItemArray(newList);
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.titleStyle}>🛒Alışveriş listesi</Text>
+
+      <View style={styles.chart}>
+        <TextInput
+          placeholder="Ne alacaksınız?"
+          style={styles.chartText}
+          value={input}
+          onChangeText={setInput}
+        />
+        <TouchableOpacity
+          style={styles.btnStyle}
+          onPress={() => {
+            addFunc();
+          }}
+        >
+          <Text style={styles.btnText}>+</Text>
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        data={itemArray}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        style={{ width: "100%", marginTop: 20 }}
+        renderItem={({ item }) => (
+          <View style={styles.added}>
+            <Text
+              style={[
+                styles.addedText,
+                item.isBought && { textDecorationLine: "line-through" },
+              ]}
+              onPress={() => {
+                toogle(item.id);
+              }}
+            >
+              {item.value}
+            </Text>
+            <TouchableOpacity
+              style={styles.delStyle}
+              onPress={() => {
+                removeFunc(item.id);
+              }}
+            >
+              <Text style={styles.delText}>×</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    padding: 20,
+    paddingTop: 60,
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-start",
+    backgroundColor: "#fff",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  titleStyle: {
+    fontSize: 30,
+    marginBottom: 20,
+    fontWeight: "bold",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  chart: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    width: "100%",
+  },
+  chartText: {
+    flex: 1,
+    borderColor: "dark grey",
+    borderWidth: 1,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 50,
+    fontSize: 16,
+  },
+  btnStyle: {
+    borderWidth: 2,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: "center",
+    justifyContent: "center",
+    borderColor: "blue",
+  },
+  btnText: {
+    color: "blue",
+    fontSize: 30,
+    marginBottom: 4,
+  },
+  added: {
+    textDecorationLine: "none",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 15,
+    marginTop: 25,
+  },
+  addedText: {
+    flex: 1,
+    fontSize: 18,
+    padding: 10,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: "red",
+    marginRight: 10,
+  },
+  delText: {
+    color: "red",
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  delStyle: {
+    width: 40,
+    height: 40,
+    borderColor: "blue",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderRadius: 20,
   },
 });
