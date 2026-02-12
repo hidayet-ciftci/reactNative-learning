@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useState } from "react";
 import {
   FlatList,
@@ -81,6 +82,21 @@ export default function HomeScreen() {
             >
               {item.value}
             </Text>
+            <TouchableOpacity
+              style={styles.detailBtn}
+              onPress={() => {
+                router.push({
+                  pathname: "/detay",
+                  params: {
+                    id: item.id,
+                    value: item.value,
+                    isBought: item.isBought.toString(),
+                  },
+                });
+              }}
+            >
+              <Text>detay</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.delStyle}
               onPress={() => {
@@ -170,5 +186,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 2,
     borderRadius: 20,
+  },
+  detailBtn: {
+    marginRight: 10,
+    borderColor: "black",
+    borderWidth: 2,
+    borderRadius: 50,
+    paddingHorizontal: 5,
+    paddingVertical: 13,
   },
 });
